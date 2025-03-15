@@ -13,6 +13,7 @@ class TextFeildwidget extends StatelessWidget {
     return  TextField(
                 controller: controller,
                 style: TextStyle(color: gray),
+                cursorColor: blue,
                 decoration: InputDecoration(
                   filled: true,
                   fillColor: Colors.black,

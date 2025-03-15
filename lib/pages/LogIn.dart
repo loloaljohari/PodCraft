@@ -5,7 +5,9 @@ import 'package:get/get.dart';
 import 'package:podcraft/core/classes/Animation/AnimatedText.dart';
 import 'package:podcraft/core/classes/Widgets/TextFeildwidget.dart';
 import 'package:podcraft/core/static/themeColors.dart';
+import 'package:podcraft/pages/ForgetPassword.dart';
 import 'package:podcraft/pages/SingUp.dart';
+import 'package:podcraft/pages/VerifyAccount.dart';
 
 class ResetPasswordController extends GetxController {
   var isPasswordHidden = true.obs;
@@ -92,7 +94,9 @@ class LogIn extends StatelessWidget {
               Align(
                 alignment: Alignment.topRight,
                 child: TextButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    Get.to(ForgetPassword());
+                  },
                   child: Text(
                     'Forgot Password?',
                     style: TextStyle(color: gray),
@@ -120,7 +124,9 @@ class LogIn extends StatelessWidget {
                   width: double.infinity,
                   height: 64,
                   child: TextButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      Get.off(VerifyAccount());
+                    },
                     child: Text("Login",
                         style: TextStyle(
                             color: black,
