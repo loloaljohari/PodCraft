@@ -1,9 +1,13 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:podcraft/core/classes/Animation/AnimatedLogin.dart';
 import 'package:podcraft/core/classes/Widgets/TextFeildwidget.dart';
 import 'package:podcraft/core/static/themeColors.dart';
+import 'package:podcraft/models/SignUpmodel.dart';
 import 'package:podcraft/pages/LogIn.dart';
+import 'package:podcraft/pages/VerifyAccount.dart';
 
 class Singup extends StatelessWidget {
   Singup({Key? key}) : super(key: key);
@@ -11,15 +15,16 @@ class Singup extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ResetPasswordController controller =
-        Get.put(ResetPasswordController(),tag: "1");
+        Get.put(ResetPasswordController(), tag: "1");
 
     final ResetPasswordController controllerr =
-        Get.put(ResetPasswordController(),tag: "2");
-    TextEditingController controller1 = TextEditingController();
-    TextEditingController controller2 = TextEditingController();
-    TextEditingController controller3 = TextEditingController();
-    TextEditingController controller4 = TextEditingController();
-    TextEditingController controller5 = TextEditingController();
+        Get.put(ResetPasswordController(), tag: "2");
+    SignUpmodel signUpmodel = Get.put(SignUpmodel());
+    TextEditingController first_name = TextEditingController();
+    TextEditingController last_name = TextEditingController();
+    TextEditingController email = TextEditingController();
+    TextEditingController password = TextEditingController();
+    TextEditingController password_confirmation = TextEditingController();
     return Scaffold(
       backgroundColor: black,
       appBar: AppBar(
@@ -60,7 +65,7 @@ class Singup extends StatelessWidget {
                     height: 64,
                     child: TextFeildwidget(
                         icon: Text(''),
-                        controller: controller1,
+                        controller: first_name,
                         hintText: 'Enter first name'),
                   ),
                   Padding(
@@ -70,7 +75,7 @@ class Singup extends StatelessWidget {
                       height: 64,
                       child: TextFeildwidget(
                           icon: Text(''),
-                          controller: controller2,
+                          controller: last_name,
                           hintText: 'Enter last name'),
                     ),
                   ),
@@ -92,7 +97,7 @@ class Singup extends StatelessWidget {
                 width: 400,
                 height: 64,
                 child: TextFeildwidget(
-                  controller: controller3,
+                  controller: email,
                   hintText: "Enter your email address",
                   icon: Padding(
                     padding: const EdgeInsets.all(16.0),
@@ -134,7 +139,7 @@ class Singup extends StatelessWidget {
                                   !controller.isPasswordHidden.value;
                             },
                           )),
-                      controller: controller4,
+                      controller: password,
                       hintText: 'Enter your password');
                 }),
               )),
@@ -168,7 +173,7 @@ class Singup extends StatelessWidget {
                                 !controllerr.isPasswordHidden.value;
                           },
                         )),
-                    controller: controller5,
+                    controller: password_confirmation,
                     hintText: 'Enter your password');
               }),
             ),
@@ -187,23 +192,75 @@ class Singup extends StatelessWidget {
                 style: TextStyle(
                     color: blue, fontSize: 20, fontWeight: FontWeight.w500)),
           ),
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Container(
-              decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(20), color: blue),
-              width: 300,
-              height: 70,
-              child: TextButton(
-                onPressed: () {},
-                child: Text("Sign Up",
-                    style: TextStyle(
-                        color: black,
-                        fontSize: 20,
-                        fontWeight: FontWeight.w400)),
+          Obx(() {
+            return Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Container(
+                decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(20), color: blue),
+                width: 300,
+                height: 70,
+                child: signUpmodel.isloading.value
+                    ? Center(
+                        child: CircularProgressIndicator(
+                          color: black,
+                        ),
+                      )
+                    : TextButton(
+                        onPressed: () async {
+                          bool isSuccess = await signUpmodel.registerUser(
+                              firstName: first_name.text,
+                              lastName: last_name.text,
+                              email: email.text,
+                              password: password.text,
+                              confirmpassword: password_confirmation.text);
+                          if (isSuccess) {
+                            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                              content: Text('Success'),
+                              backgroundColor: Colors.green,
+                            ));
+                            Navigator.push(
+                              context,
+                              PageRouteBuilder(
+                                pageBuilder:
+                                    (context, animation, secondaryAnimation) =>
+                                        VerifyAccount(Email: email.text,),
+                                transitionsBuilder: (context, animation,
+                                    secondaryAnimation, child) {
+                                  return ScaleTransition(
+                                    scale: Tween<double>(
+                                            begin: 0.0,
+                                            end:
+                                                1.0) // بداية من صفر إلى الحجم الكامل
+                                        .animate(CurvedAnimation(
+                                      parent: animation,
+                                      curve: Curves
+                                          .easeInOut, // تخصيص منحنى الحركة
+                                    )),
+                                    alignment: Alignment
+                                        .topLeft, // تحديد نقطة البداية (الزاوية العليا اليسرى)
+                                    child: child,
+                                  );
+                                },
+                              )
+                            );
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                              content: Text('Error'),
+                              backgroundColor: Colors.blueGrey[700],
+                              duration: Duration(seconds: 7),
+                            ));
+                          }
+                        },
+                        child: Text("Sign Up",
+                            style: TextStyle(
+                                color: black,
+                                fontSize: 20,
+                                fontWeight: FontWeight.w400)),
+                      ),
               ),
-            ),
-          ),
+            );
+          }),
           Row(
             children: [
               Padding(
@@ -214,7 +271,7 @@ class Singup extends StatelessWidget {
                         fontSize: 16,
                         fontWeight: FontWeight.w400)),
               ),
-             AnimatedLogin()
+              AnimatedLogin()
             ],
           )
         ],

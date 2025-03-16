@@ -4,16 +4,21 @@ import 'package:flutter_timer_countdown/flutter_timer_countdown.dart';
 import 'package:get/get.dart';
 import 'package:get/get_navigation/src/routes/default_transitions.dart';
 import 'package:podcraft/core/static/themeColors.dart';
+import 'package:podcraft/models/verifymodel.dart';
 import 'package:podcraft/pages/HomeChat.dart';
+import 'package:podcraft/pages/LogIn.dart';
 
 class VerifyAccount extends StatefulWidget {
-  const VerifyAccount({Key? key}) : super(key: key);
+  final String Email;
+  VerifyAccount({Key? key, required this.Email}) : super(key: key);
 
   @override
   _VerifyAccountState createState() => _VerifyAccountState();
 }
 
 class _VerifyAccountState extends State<VerifyAccount> {
+  String? code;
+  Verifymodel verifymodel = Get.put(Verifymodel());
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -68,9 +73,13 @@ class _VerifyAccountState extends State<VerifyAccount> {
             ),
             Center(
               child: OtpTextField(
-                fieldHeight: 54,
-                fieldWidth: 56,
-                numberOfFields: 5,
+                onSubmit: (value) {
+                  print(value);
+                  code = value;
+                },
+                fieldHeight: 44,
+                fieldWidth: 46,
+                numberOfFields: 6,
                 cursorColor: gray1,
                 borderWidth: 0,
                 borderRadius: BorderRadius.circular(13),
@@ -83,44 +92,70 @@ class _VerifyAccountState extends State<VerifyAccount> {
             SizedBox(
               height: 60,
             ),
-            SizedBox(
-              width: double.infinity,
-              height: 50,
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: blue,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    PageRouteBuilder(
-                      pageBuilder: (context, animation, secondaryAnimation) =>
-                          HomeChat(),
-                      transitionsBuilder:
-                          (context, animation, secondaryAnimation, child) {
-                        return ScaleTransition(
-                          scale: Tween<double>(
-                                  begin: 0.0,
-                                  end: 1.0) // بداية من صفر إلى الحجم الكامل
-                              .animate(CurvedAnimation(
-                            parent: animation,
-                            curve: Curves.easeInOut, // تخصيص منحنى الحركة
-                          )),
-                          alignment: Alignment
-                              .topLeft, // تحديد نقطة البداية (الزاوية العليا اليسرى)
-                          child: child,
-                        );
-                      },
+            Obx(() {
+              return SizedBox(
+                width: double.infinity,
+                height: 50,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: blue,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
                     ),
-                  );
-                },
-                child: Text("Verify Account",
-                    style: TextStyle(color: Colors.black, fontSize: 16)),
-              ),
-            ),
+                  ),
+                  onPressed: () async {
+                    print(code);
+                    print(widget.Email);
+                    bool isSuccess = await verifymodel.verify(
+                        code: code, email: widget.Email);
+                    if (isSuccess) {
+                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                        content: Text('Success'),
+                        backgroundColor: Colors.green,
+                      ));
+                      Navigator.pushAndRemoveUntil(
+                        context,
+                        PageRouteBuilder(
+                          pageBuilder:
+                              (context, animation, secondaryAnimation) =>
+                                  LogIn(),
+                          transitionsBuilder:
+                              (context, animation, secondaryAnimation, child) {
+                            return ScaleTransition(
+                              scale: Tween<double>(
+                                      begin: 0.0,
+                                      end: 1.0) // بداية من صفر إلى الحجم الكامل
+                                  .animate(CurvedAnimation(
+                                parent: animation,
+                                curve: Curves.easeInOut, // تخصيص منحنى الحركة
+                              )),
+                              alignment: Alignment
+                                  .topLeft, // تحديد نقطة البداية (الزاوية العليا اليسرى)
+                              child: child,
+                            );
+                          },
+                        ),
+                        (route) => false,
+                      );
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                        content: Text('Error'),
+                        backgroundColor: Colors.blueGrey[700],
+                        duration: Duration(seconds: 7),
+                      ));
+                    }
+                  },
+                  child: verifymodel.isloading.value
+                      ? Center(
+                          child: CircularProgressIndicator(
+                            color: black,
+                          ),
+                        )
+                      : Text("Verify Account",
+                          style: TextStyle(color: Colors.black, fontSize: 16)),
+                ),
+              );
+            }),
             const SizedBox(height: 30),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,

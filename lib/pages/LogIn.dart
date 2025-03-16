@@ -5,7 +5,9 @@ import 'package:get/get.dart';
 import 'package:podcraft/core/classes/Animation/AnimatedText.dart';
 import 'package:podcraft/core/classes/Widgets/TextFeildwidget.dart';
 import 'package:podcraft/core/static/themeColors.dart';
+import 'package:podcraft/models/Loginmodel.dart';
 import 'package:podcraft/pages/ForgetPassword.dart';
+import 'package:podcraft/pages/HomeChat.dart';
 import 'package:podcraft/pages/SingUp.dart';
 import 'package:podcraft/pages/VerifyAccount.dart';
 
@@ -16,7 +18,7 @@ class ResetPasswordController extends GetxController {
 
 class LogIn extends StatelessWidget {
   final ResetPasswordController controller = Get.put(ResetPasswordController());
-
+  final Loginmodel loginmodel = Get.put(Loginmodel());
   final TextEditingController email = TextEditingController();
   final TextEditingController password = TextEditingController();
   LogIn({Key? key}) : super(key: key);
@@ -116,25 +118,71 @@ class LogIn extends StatelessWidget {
                     fontSize: 20, color: Color.fromRGBO(47, 146, 166, 1)),
               ),
               const SizedBox(height: 10),
-              Padding(
-                padding: const EdgeInsets.all(8),
-                child: Container(
-                  decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(20), color: blue),
-                  width: double.infinity,
-                  height: 64,
-                  child: TextButton(
-                    onPressed: () {
-                      Get.off(VerifyAccount());
-                    },
-                    child: Text("Login",
-                        style: TextStyle(
-                            color: black,
-                            fontSize: 20,
-                            fontWeight: FontWeight.w400)),
+              Obx(() {
+                return Padding(
+                  padding: const EdgeInsets.all(8),
+                  child: Container(
+                    decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(20), color: blue),
+                    width: double.infinity,
+                    height: 64,
+                    child: TextButton(
+                      onPressed: () async {
+                        bool isSuccess = await loginmodel.Login(
+                            email: email.text, password: password.text);
+                        if (isSuccess) {
+                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                            content: Text('Success'),
+                            backgroundColor: Colors.green,
+                          ));
+                          Navigator.pushAndRemoveUntil(
+                            context,
+                            PageRouteBuilder(
+                              pageBuilder:
+                                  (context, animation, secondaryAnimation) =>
+                                      HomeChat(),
+                              transitionsBuilder: (context, animation,
+                                  secondaryAnimation, child) {
+                                return ScaleTransition(
+                                  scale: Tween<double>(
+                                          begin: 0.0,
+                                          end:1.0) // بداية من صفر إلى الحجم الكامل
+                                      .animate(CurvedAnimation(
+                                    parent: animation,
+                                    curve:
+                                        Curves.easeInOut, // تخصيص منحنى الحركة
+                                  )),
+                                  alignment: Alignment
+                                      .topLeft, // تحديد نقطة البداية (الزاوية العليا اليسرى)
+                                  child: child,
+                                );
+                              },
+                            ),
+                            (route) => false,
+                          );
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                            content: Text('Error'),
+                            backgroundColor: Colors.blueGrey[700],
+                            duration: Duration(seconds: 7),
+                          ));
+                        }
+                      },
+                      child: loginmodel.isloading.value
+                          ? Center(
+                              child: CircularProgressIndicator(
+                                color: black,
+                              ),
+                            )
+                          : Text("Login",
+                              style: TextStyle(
+                                  color: black,
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.w400)),
+                    ),
                   ),
-                ),
-              ),
+                );
+              }),
               Padding(
                 padding: const EdgeInsets.only(left: 40),
                 child: Row(
